@@ -26,7 +26,7 @@ class AlertTag(Tag):
     __lowLimitTemp = None  # 下限警報溫度
     __upLimitHumi = None  # 上限警報濕度
     __lowLimitHumi = None  # 下限警報濕度
-    __deviceRootPath = None # 與第三方元件取得小米溫濕度數值後，寫入的檔案root位置
+    __deviceRootPath = None  # 與第三方元件取得小米溫濕度數值後，寫入的檔案root位置
 
     def __init__(self, canvas, relocate, configItem):
         # 取出需用到的設定值
@@ -67,7 +67,7 @@ class AlertTag(Tag):
         )
         self.__dataTag = self.canvas.create_text(
             self.getDataTagCoords(self.tagX, self.tagY),
-            text="電量:45%\n溫度:36.6℃\n濕度:52%",
+            text="電量:??%\n溫度:??℃\n濕度:??%",
             fill='#ffffff',
             font=("Arial", 12),
             tags=self.__tagsName
@@ -96,10 +96,10 @@ class AlertTag(Tag):
         # 寫入溫溼度資料
         with open(deviceFile, 'w', encoding='UTF8') as file:
             file.write(json.dumps({"Temp": 36.5, "Humi": 35, "Battery": 96}, ensure_ascii=False))
-        
+
     # 讀取溫溼度檔案，呈現最新數據
     def readTempHumiData(self):
-        offlineCount = 0 # 讀取不到檔案幾次顯示離線(6次，6*5=30秒)
+        offlineCount = 0  # 讀取不到檔案幾次顯示離線(6次，6*5=30秒)
         captureTime = ConfigUtil().CaptureTime
         # 開始讀取檔案
         fileName = self.__deviceMac.replace(":", "-")
@@ -117,19 +117,19 @@ class AlertTag(Tag):
             with open(deviceFile, 'r') as file:
                 # 只有一行，json資料結構
                 data = json.loads(file.readline())
-                print(data["Temp"], data["Humi"], data["Battery"])
+                # 於畫面上更新數值
+                self.canvas.itemconfig(self.__dataTag, text="電量:%s%%\n溫度:%s℃\n濕度:%s%%" %
+                                       (data["Battery"], data["Temp"], data["Humi"]))
                 # 成功讀取最新數值，offline狀態清空
                 offlineCount = 0
                 self.setOnlineStatus(True)
             time.sleep(captureTime)
-
 
     def Relocate(self):
         super().Relocate()
         self.canvas.coords(self.__dataTagBg, self.getDataTagBGCoords(self.tagX, self.tagY))
         self.canvas.coords(self.__dataTag, self.getDataTagCoords(self.tagX, self.tagY))
         self.TriggerAlert()
-#        self.canvas.itemconfig(self.__dataTag, text="溫度:50℃\n濕度:39%")
 
     # 標籤觸發警報動作，閃爍背景(紅色)來達到視覺注目效果(使用執行序來跑，以免畫面lock)
     def TriggerAlert(self):
