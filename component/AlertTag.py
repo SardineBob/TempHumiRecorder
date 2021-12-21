@@ -7,7 +7,7 @@ import threading
 from datetime import datetime
 from utilset.ConfigUtil import ConfigUtil
 from utilset.AbnormalUtil import AbnormalUtil
-# from component.RtspRecord import RtspRecord
+from component.Buzzer import Buzzer
 
 # 背景圓：平常為綠色，警報發生時，呈現紅色閃爍
 # 狀態環：識別樹梅派WebSocket訊號是否連結的呈現(紅色：未連結，藍色：已連結)
@@ -27,6 +27,7 @@ class AlertTag(Tag):
     __upLimitHumi = None  # 上限警報濕度
     __lowLimitHumi = None  # 下限警報濕度
     __deviceRootPath = None  # 與第三方元件取得小米溫濕度數值後，寫入的檔案root位置
+    __buzzer = None  # 蜂鳴警報器物件
 
     def __init__(self, canvas, relocate, configItem):
         # 取出需用到的設定值
@@ -40,6 +41,7 @@ class AlertTag(Tag):
         self.__upLimitHumi = configItem["humiuplimit"]
         self.__lowLimitHumi = configItem["humilowlimit"]
         self.__deviceRootPath = ConfigUtil().DeviceRootPath
+        self.__buzzer = Buzzer()
         # open警報點標籤的icon image
         picLoad = Image.open(self.__picPath)
         picPhoto = ImageTk.PhotoImage(picLoad)
@@ -141,6 +143,8 @@ class AlertTag(Tag):
             self.__task.setDaemon(True)  # 設定保護執行序，會隨著主視窗關閉，執行序會跟著kill
             self.__flickerStatus = True  # 開啟背景閃爍
             self.__task.start()
+            # 啟動異常警示語音播報
+            self.__buzzer.trigger()
             # 產生觸發時間與錄影檔名
             #nowTime = datetime.now()
             #cameraInfo = []
@@ -173,6 +177,7 @@ class AlertTag(Tag):
     def TriggerStop(self):
         self.__flickerStatus = False
         self.__task = None  # 停止閃爍，執行序清掉(等待python程序GC)，以利下一次觸發
+        self.__buzzer.switchOnOff(True)  # 異常排除，恢復警報器
 
     # 執行背景閃爍的特效(紅藍背景互換)
     def __TagFlicker(self):
@@ -192,13 +197,19 @@ class AlertTag(Tag):
     def __TagClick(self):
         if self.__flickerStatus is True:
             self.TriggerStop()
+        self.__buzzer.close()  # 停止警示語音播報
+        self.__buzzer.switchOnOff(False)  # 暫時關閉警報器
 
     # 讓外界呼叫，根據與小米溫濕度計藍芽連接之上線狀況，切換狀態環的顏色
     def setOnlineStatus(self, onlineStatus):
         if onlineStatus:
             self.canvas.itemconfig(self.ringid, outline="#00ff00")
+            self.__buzzer.switchOnOff(True)  # 恢復連線，恢復警報器
         else:
             self.canvas.itemconfig(self.ringid, outline="#ff0000")
+            self.__buzzer.trigger()  # 啟動離線警示語音播報
+            # 離線時更新數值為問號
+            self.canvas.itemconfig(self.__dataTag, text="電量:??%\n溫度:??℃\n濕度:??%")
 
     # 計算溫溼度數值標籤背景圖位置，這邊只是微調一下，讓畫面好看
     def getDataTagBGCoords(self, tagX, tagY):
