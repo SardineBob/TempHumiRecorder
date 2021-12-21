@@ -29,7 +29,7 @@ class Tag():
         # 繪製Tag背景圓型
         self.bgid = canvas.create_oval(
             self.getBGCoords(self.tagX, self.tagY),
-            fill='#00ff00',
+            fill='#005AB5',
             tags=tagName
         )
         # 繪製Tag圖示

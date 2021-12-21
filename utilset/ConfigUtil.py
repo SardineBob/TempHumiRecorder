@@ -75,8 +75,10 @@ class ConfigUtil():
             "deviceRootPath": "C://Bob//13.PythonProject//TempHumiRecorder//devices//",
             "captureTime": 5,
             "tempHumiDevices": [
-                {'id': 'A01', 'name': '左側機房', 'mac': 'A4:C1:38:35:5C:24', 'tempuplimit': 30,
-                    'templowlimit': 15, 'humiuplimit': 30, 'humilowlimit': 15, 'tagX': 125, 'tagY': 125},
+                {'id': 'A01', 'name': '左側機房', 'mac': 'A4:C1:38:35:5C:24',
+                 'tempuplimit': 30, 'templowlimit': 15,
+                 'humiuplimit': 30, 'humilowlimit': 15,
+                 'tagX': 125, 'tagY': 125},
                 #{'id': 'A02', 'name': '中間冷凍櫃', 'serial': '28CEBD7D613CA6', 'initTemp': 10,  'uplimit': 15, 'lowlimit': 5},
                 #{'id': 'A03', 'name': '右邊冷凍櫃', 'serial': '28177A7D613C87', 'initTemp': 60,  'uplimit': 70, 'lowlimit': 50},
             ],
