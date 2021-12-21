@@ -60,15 +60,16 @@ class AlertTag(Tag):
 
     # 在Tag下方顯示溫溼度標籤
     def CreateDataTag(self):
-        self.__dataTagBg = self.canvas.create_rectangle(
-            self.getDataTagBGCoords(self.tagX, self.tagY),
-            fill='#000000',
-            tags=self.__tagsName
-        )
+        # 繪製背景
+        bgX1, bgY1, bgX2, bgY2 = self.getDataTagBGCoords(self.tagX, self.tagY)
+        bgImg = ImageTk.PhotoImage(Image.new(mode="RGBA", size=(bgX2-bgX1, bgY2-bgY1), color=(0, 0, 0, 170)))
+        self.__dataTagBg = self.canvas.create_image(bgX1, bgY1, image=bgImg, anchor='nw', tags=self.__tagsName)
+        self.canvas.dataTagBg = bgImg
+        # 繪製資料
         self.__dataTag = self.canvas.create_text(
             self.getDataTagCoords(self.tagX, self.tagY),
             text="電量:??%\n溫度:??℃\n濕度:??%",
-            fill='#ffffff',
+            fill='#FFFFFF',
             font=("Arial", 12),
             tags=self.__tagsName
         )
@@ -127,7 +128,8 @@ class AlertTag(Tag):
 
     def Relocate(self):
         super().Relocate()
-        self.canvas.coords(self.__dataTagBg, self.getDataTagBGCoords(self.tagX, self.tagY))
+        bgX1, bgY1, bgX2, bgY2 = self.getDataTagBGCoords(self.tagX, self.tagY)
+        self.canvas.coords(self.__dataTagBg, bgX1, bgY1)
         self.canvas.coords(self.__dataTag, self.getDataTagCoords(self.tagX, self.tagY))
         self.TriggerAlert()
 
