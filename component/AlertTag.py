@@ -21,10 +21,10 @@ class AlertTag(Tag):
 
     def __init__(self, canvas, relocate, configItem):
         # 取出需用到的設定值
-        pointid = configItem["number"]
+        pointid = configItem["id"]
         name = configItem["name"]
-        x = configItem["X"]
-        y = configItem["Y"]
+        x = configItem["tagX"]
+        y = configItem["tagY"]
         # open警報點標籤的icon image
         picLoad = Image.open(self.__picPath)
         picPhoto = ImageTk.PhotoImage(picLoad)

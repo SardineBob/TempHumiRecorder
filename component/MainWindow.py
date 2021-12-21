@@ -56,8 +56,8 @@ class MainWindow():
         # 產生RTSP視窗物件
         # self.__RtspWindow = RtspWindow()
         # self.__RtspWindow.SetCameraTag(self.__cameraTags)
-        # 產生保全器材(警報點)標籤位置
-        for item in self.__configUtil.AlertPoints:
+        # 產生溫溼度計標籤位置
+        for item in self.__configUtil.TempHumiDevices:
             self.__alertTags.append(
                 AlertTag(self.__canvas, self.__windowRelocate, item))
         # 產生攝影機標籤位置
