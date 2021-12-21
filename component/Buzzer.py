@@ -1,7 +1,7 @@
 import threading
 import time
-from enum import Enum
 from playsound import playsound
+
 
 # 警報器，當溫度/濕度或離線時超出正常範圍時觸發
 class Buzzer():
