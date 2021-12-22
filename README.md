@@ -11,11 +11,6 @@
 ## ref github: https://github.com/JsBergbau/MiTemperature2
 ## ./LYWSD03MMC.py -d A4:C1:38:35:5C:24  -r -b
 
-
-
-# 安裝websocket-client
-## pip install websocket-client
-
 # 安裝Sqllite3
 ## pip install pysqlite3
 

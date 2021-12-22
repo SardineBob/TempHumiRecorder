@@ -3,12 +3,9 @@ import sqlite3
 
 class SqlLiteUtil():
 
-    def __init__(self):
-        self.__dbFile = "dbfile/AbnormalRecord.db"
-
     # 執行SQL Lite指令
-    def Execute(self, sqlcommand, sqlparamter):
-        with sqlite3.connect(self.__dbFile) as conn:
+    def Execute(self, dbFile, sqlcommand, sqlparamter):
+        with sqlite3.connect(dbFile) as conn:
             cur = conn.cursor()
             cur.execute(sqlcommand, sqlparamter)
             conn.commit()

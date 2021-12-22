@@ -7,6 +7,7 @@ import threading
 from datetime import datetime
 from utilset.ConfigUtil import ConfigUtil
 from utilset.AbnormalUtil import AbnormalUtil
+from utilset.DbAccessUtil import DbAccessUtil
 from component.Buzzer import Buzzer
 
 # 背景圓：平常為綠色，警報發生時，呈現紅色閃爍
@@ -28,6 +29,7 @@ class AlertTag(Tag):
     __lowLimitHumi = None  # 下限警報濕度
     __deviceRootPath = None  # 與第三方元件取得小米溫濕度數值後，寫入的檔案root位置
     __buzzer = None  # 蜂鳴警報器物件
+    __dbAccessUtil = None  # sqlite db物件
 
     def __init__(self, canvas, relocate, configItem):
         # 取出需用到的設定值
@@ -42,6 +44,7 @@ class AlertTag(Tag):
         self.__lowLimitHumi = configItem["humilowlimit"]
         self.__deviceRootPath = ConfigUtil().DeviceRootPath
         self.__buzzer = Buzzer()
+        self.__dbAccessUtil = DbAccessUtil()
         # open警報點標籤的icon image
         picLoad = Image.open(self.__picPath)
         picPhoto = ImageTk.PhotoImage(picLoad)
@@ -126,11 +129,19 @@ class AlertTag(Tag):
                 # 檢查目前溫溼度數值是否異常
                 tempIsOK = self.checkTemp(data["Temp"])
                 humiIsOK = self.checkTemp(data["Humi"])
+                # 執行寫入db
+                self.insertTempHumiData({
+                    "Temp": data["Temp"],
+                    "Humi": data["Humi"],
+                    "Battery": data["Battery"],
+                    "TempIsOK": tempIsOK,
+                    "HumiIsOK": humiIsOK
+                })
                 # 溫溼度其中一個異常，觸發告警
                 if tempIsOK is False or humiIsOK is False:
                     self.TriggerAlert()
                 else:
-                    self.TriggerStop() # 異常恢復，自動關閉告警
+                    self.TriggerStop()  # 異常恢復，自動關閉告警
                 # 成功讀取最新數值，offline狀態清空
                 offlineCount = 0
                 self.setOnlineStatus(True)
@@ -143,6 +154,23 @@ class AlertTag(Tag):
     # 判斷目前濕度，是否異常，超出設定界線則觸發告警
     def checkHumi(self, nowHumi):
         return nowHumi >= self.__lowLimitHumi and nowHumi <= self.__upLimitHumi
+
+    # 將收到的溫溼度寫入sqlite db
+    def insertTempHumiData(self, data):
+        self.__dbAccessUtil.writeTempHumi({
+            'id': self.pointid,
+            'name': self.name,
+            'temperature': data['Temp'],
+            'humidity': data['Humi'],
+            'isTempUnusual': not data['TempIsOK'],
+            'isHumiUnusual': not data['HumiIsOK'],
+            'upTempLimit': self.__upLimitTemp,
+            'lowTempLimit': self.__lowLimitTemp,
+            'upHumiLimit': self.__upLimitHumi,
+            'lowHumiLimit': self.__lowLimitHumi,
+            'deviceMac': self.__deviceMac,
+            'battery': data['Battery']
+        })
 
     # 標籤觸發警報動作，閃爍背景(紅色)來達到視覺注目效果(使用執行序來跑，以免畫面lock)
     def TriggerAlert(self):

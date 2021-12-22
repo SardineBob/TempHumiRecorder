@@ -26,4 +26,5 @@ yarn-error.log*
 */Abnormal/__pycache__
 
 /devices
+/dbfile
 dbfile/AbnormalRecord.db
