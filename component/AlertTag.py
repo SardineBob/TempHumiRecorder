@@ -64,7 +64,7 @@ class AlertTag(Tag):
     def CreateDataTag(self):
         # 繪製背景
         bgX1, bgY1, bgX2, bgY2 = self.getDataTagBGCoords(self.tagX, self.tagY)
-        bgImg = ImageTk.PhotoImage(Image.new(mode="RGBA", size=(bgX2-bgX1, bgY2-bgY1), color=(0, 0, 0, 170)))
+        bgImg = ImageTk.PhotoImage(Image.new(mode="RGBA", size=(bgX2-bgX1, bgY2-bgY1), color=(0, 0, 0, 125)))
         self.__dataTagBg = self.canvas.create_image(bgX1, bgY1, image=bgImg, anchor='nw', tags=self.__tagsName)
         self.canvas.dataTagBg = bgImg
         # 繪製資料
@@ -107,7 +107,7 @@ class AlertTag(Tag):
         # 開始讀取檔案
         fileName = self.__deviceMac.replace(":", "-")
         deviceFile = os.path.join(self.__deviceRootPath, fileName)
-        # 每五秒讀取一次檔案的數值
+        # 每設定秒數讀取一次檔案的數值
         while True:
             # 讀取不到檔案，累計次數，達上限數顯示離線
             if os.path.isfile(deviceFile) is False:
@@ -123,17 +123,26 @@ class AlertTag(Tag):
                 # 於畫面上更新數值
                 self.canvas.itemconfig(self.__dataTag, text="電量:%s%%\n溫度:%s℃\n濕度:%s%%" %
                                        (data["Battery"], data["Temp"], data["Humi"]))
+                # 檢查目前溫溼度數值是否異常
+                tempIsOK = self.checkTemp(data["Temp"])
+                humiIsOK = self.checkTemp(data["Humi"])
+                # 溫溼度其中一個異常，觸發告警
+                if tempIsOK is False or humiIsOK is False:
+                    self.TriggerAlert()
+                else:
+                    self.TriggerStop() # 異常恢復，自動關閉告警
                 # 成功讀取最新數值，offline狀態清空
                 offlineCount = 0
                 self.setOnlineStatus(True)
             time.sleep(captureTime)
 
-    def Relocate(self):
-        super().Relocate()
-        bgX1, bgY1, bgX2, bgY2 = self.getDataTagBGCoords(self.tagX, self.tagY)
-        self.canvas.coords(self.__dataTagBg, bgX1, bgY1)
-        self.canvas.coords(self.__dataTag, self.getDataTagCoords(self.tagX, self.tagY))
-        self.TriggerAlert()
+    # 判斷目前溫度，是否異常，超出設定界線則觸發告警
+    def checkTemp(self, nowTemp):
+        return nowTemp >= self.__lowLimitTemp and nowTemp <= self.__upLimitTemp
+
+    # 判斷目前濕度，是否異常，超出設定界線則觸發告警
+    def checkHumi(self, nowHumi):
+        return nowHumi >= self.__lowLimitHumi and nowHumi <= self.__upLimitHumi
 
     # 標籤觸發警報動作，閃爍背景(紅色)來達到視覺注目效果(使用執行序來跑，以免畫面lock)
     def TriggerAlert(self):
@@ -177,6 +186,7 @@ class AlertTag(Tag):
     def TriggerStop(self):
         self.__flickerStatus = False
         self.__task = None  # 停止閃爍，執行序清掉(等待python程序GC)，以利下一次觸發
+        self.__buzzer.close()  # 停止警示語音播報
         self.__buzzer.switchOnOff(True)  # 異常排除，恢復警報器
 
     # 執行背景閃爍的特效(紅藍背景互換)
@@ -210,6 +220,13 @@ class AlertTag(Tag):
             self.__buzzer.trigger()  # 啟動離線警示語音播報
             # 離線時更新數值為問號
             self.canvas.itemconfig(self.__dataTag, text="電量:??%\n溫度:??℃\n濕度:??%")
+
+    # 視窗大小異動時，更新座標位置
+    def Relocate(self):
+        super().Relocate()
+        bgX1, bgY1, bgX2, bgY2 = self.getDataTagBGCoords(self.tagX, self.tagY)
+        self.canvas.coords(self.__dataTagBg, bgX1, bgY1)
+        self.canvas.coords(self.__dataTag, self.getDataTagCoords(self.tagX, self.tagY))
 
     # 計算溫溼度數值標籤背景圖位置，這邊只是微調一下，讓畫面好看
     def getDataTagBGCoords(self, tagX, tagY):
