@@ -19,7 +19,7 @@ class AbnormalWindow():
         # 註冊視窗關閉事件，使用者點擊視窗的X，會觸發
         self.__window.protocol("WM_DELETE_WINDOW", self.__closeMethod)
         # 產生版面
-        self.__CreatePanel()
+        # self.__CreatePanel()
 
     # 產生版面(左版面：異常紀錄清單，右版面：選取異常紀錄之對應的錄影檔)
     def __CreatePanel(self):

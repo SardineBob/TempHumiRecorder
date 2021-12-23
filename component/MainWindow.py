@@ -3,8 +3,9 @@ from tkinter import ttk, messagebox
 from utilset.ConfigUtil import ConfigUtil
 from component.Map import Map
 from component.WindowRelocate import WindowRelocate
+from component.UnusualReportTag import UnusualReportTag
 from component.AlertTag import AlertTag
-# from component.Abnormal.AbnormalWindow import AbnormalWindow
+from component.Abnormal.AbnormalWindow import AbnormalWindow
 
 
 class MainWindow():
@@ -17,11 +18,10 @@ class MainWindow():
     __canvas = None
     __map = None
     __windowRelocate = None
+    __menuTags = []
     __alertTags = []
     __cameraTags = []
-    __raspberryPi = []
     __AbnormalWindow = None
-    __RtspWindow = None
 
     # 測試用
     __window = None
@@ -56,10 +56,11 @@ class MainWindow():
         # 產生RTSP視窗物件
         # self.__RtspWindow = RtspWindow()
         # self.__RtspWindow.SetCameraTag(self.__cameraTags)
+        # 產生Menu標籤
+        self.__menuTags.append(UnusualReportTag(self.__canvas, self.__windowRelocate))
         # 產生溫溼度計標籤位置
         for item in self.__configUtil.TempHumiDevices:
-            self.__alertTags.append(
-                AlertTag(self.__canvas, self.__windowRelocate, item))
+            self.__alertTags.append(AlertTag(self.__canvas, self.__windowRelocate, item))
         # 產生攝影機標籤位置
         # for item in self.__configUtil.cameraPoints:
         #    self.__cameraTags.append(
@@ -145,8 +146,8 @@ class MainWindow():
         #button2.place(x=50, y=10)
         #button3 = tk.Button(text='連線', command=click3)
         #button3.place(x=90, y=10)
-        #button4 = tk.Button(text='開啟報表', command=click4)
-        #button4.place(x=130, y=10)
+        button4 = tk.Button(text='開啟報表', command=click4)
+        button4.place(x=130, y=10)
         #button5 = tk.Button(text='關閉報表', command=click5)
         #button5.place(x=200, y=10)
         #button4 = tk.Button(text='開啟攝影機畫面', command=click6)
@@ -178,26 +179,27 @@ class MainWindow():
                 self.__map.Draw(event.width, event.height)
                 # 設定目前Window Resize後的寬高大小
                 self.__windowRelocate.SetCurrentSize(event.width, event.height)
+                # 重新定位menu標籤位置
+                for item in self.__menuTags:
+                    item.Relocate()
                 # 重新定位保全器材標籤位置
                 for item in self.__alertTags:
-                    item.Relocate()
-                for item in self.__cameraTags:
                     item.Relocate()
                 # 更新目前視窗寬高
                 self.__curWidth = event.width
                 self.__curHeight = event.height
 
     # 開啟異常紀錄清單視窗
-    # def __openAbnormalWindow(self):
-    #    if self.__AbnormalWindow is None:
-    #        self.__AbnormalWindow = AbnormalWindow({
-    #            "closeMethod": self.__closeAbnormalWindow
-    #        })
-    #    # 這個return是提供外界去承接這個物件，呼叫裡面方法
-    #    return self.__AbnormalWindow
+    def __openAbnormalWindow(self):
+        if self.__AbnormalWindow is None:
+            self.__AbnormalWindow = AbnormalWindow({
+                "closeMethod": self.__closeAbnormalWindow
+            })
+        # 這個return是提供外界去承接這個物件，呼叫裡面方法
+        return self.__AbnormalWindow
 
     # 關閉異常紀錄清單視窗
-    # def __closeAbnormalWindow(self):
-    #    if self.__AbnormalWindow is not None:
-    #        self.__AbnormalWindow.WindowClose()
-    #        self.__AbnormalWindow = None
+    def __closeAbnormalWindow(self):
+        if self.__AbnormalWindow is not None:
+            self.__AbnormalWindow.WindowClose()
+            self.__AbnormalWindow = None
