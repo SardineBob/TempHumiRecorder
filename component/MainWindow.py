@@ -53,14 +53,14 @@ class MainWindow():
             'oriMapWidth': self.__map.mapOriginWidth,
             'oriMapHeight': self.__map.mapOriginHeight
         })
-        # 產生RTSP視窗物件
-        # self.__RtspWindow = RtspWindow()
-        # self.__RtspWindow.SetCameraTag(self.__cameraTags)
         # 產生Menu標籤
         self.__menuTags.append(UnusualReportTag(self.__canvas, self.__windowRelocate))
         # 產生溫溼度計標籤位置
         for item in self.__configUtil.TempHumiDevices:
             self.__alertTags.append(AlertTag(self.__canvas, self.__windowRelocate, item))
+        # 建立溫溼度標籤與異常清單連結關係
+        for item in self.__alertTags:
+            item.linkAbnormalWindow(self.__openAbnormalWindow)
         # 產生攝影機標籤位置
         # for item in self.__configUtil.cameraPoints:
         #    self.__cameraTags.append(

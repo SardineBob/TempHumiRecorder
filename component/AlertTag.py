@@ -225,11 +225,11 @@ class AlertTag(Tag):
             self.canvas.itemconfig(self.bgid, fill='#005AB5')
             time.sleep(0.25)
 
-    # 連結異常紀錄清單，點擊該AlertTag的時候，開啟異常紀錄視窗，並直接切換到這一個警示點的異常紀錄清單
-    # def linkAbnormalWindow(self, openMethod):
-    #    # 註冊開啟異常紀錄視窗事件
-    #    self.canvas.tag_bind(self.tagid, '<Button-1>',
-    #                         lambda event: openMethod().queryBar.QueryAlertCombo(self.pointid))
+    # 連結異常紀錄清單，點擊該AlertTag的時候，開啟異常紀錄視窗，並直接切換到這一個溫溼度計的異常紀錄清單
+    def linkAbnormalWindow(self, openMethod):
+       # 註冊開啟異常紀錄視窗事件
+       self.canvas.tag_bind(self.tagid, '<Button-1>',
+                            lambda event: openMethod().queryBar.QueryAlertCombo(self.pointid, self.name))
 
     # 點擊該AlertTag動作，告警發生時，可關閉告警；無告景下點擊則開啟紀錄清單視窗，並直接切換到這一個警示點的異常紀錄清單
     def __TagClick(self):

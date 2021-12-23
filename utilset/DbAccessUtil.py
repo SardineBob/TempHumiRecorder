@@ -13,11 +13,11 @@ class DbAccessUtil():
 
     def __init__(self):
         self.__sqlLiteUtil = SqlLiteUtil()
+        # 先檢查dbfile是否存在
+        self.__checkDB()
 
     # 將溫濕度寫入DB
     def writeTempHumi(self, para):
-        # 先檢查dbfile是否存在
-        self.__checkDB()
         # 將溫濕度insert到DB
         self.__insertTemperature(para)
 
@@ -57,7 +57,7 @@ class DbAccessUtil():
 
     # insert溫度資料
     def __insertTemperature(self, para):
-        now = datetime.now().strftime('%Y/%m/%d %H:%M:%S.%f')
+        now = datetime.now().strftime('%Y/%m/%d %H:%M:%S')
         # insert 指令
         command = " INSERT INTO RecordList VALUES (:id, :name, :recordTime, :temperature, :humidity, :isTempUnusual, :isHumiUnusual, :upTempLimit, :lowTempLimit, :upHumiLimit, :lowHumiLimit, :deviceMac, :battery) "
         parameter = {
@@ -77,6 +77,36 @@ class DbAccessUtil():
         }
         # do insert to db
         self.__sqlLiteUtil.Execute(self.__dbFilePath, command, parameter)
+
+    # 取得今日異常紀錄清單
+    def getTodayUnusualRecord(self, **para):
+        command = " SELECT Name, RecordTime, Temperature, Humidity, IsTempUnusual, IsHumiUnusual FROM RecordList WHERE 1=1 "
+        parameter = {}
+        # 取得查詢條件
+        queryRecordDate = datetime.now().strftime('%Y/%m/%d') if "recordDate" not in para else para["recordDate"]
+        queryID = None if "tagID" not in para else para["tagID"]
+        # 開始根據條件搜尋
+        if queryRecordDate is not None:
+            command += " AND RecordTime LIKE :date "
+            parameter["date"] = queryRecordDate + "%"
+        if queryID is not None:
+            command += " AND ID= :id "
+            parameter["id"] = queryID
+        # 加入排序語法
+        command += " ORDER BY RecordTime DESC "
+        # 加工將List<tuple>轉List<Object>型態
+        data = []
+        result = SqlLiteUtil().Execute(self.__dbFilePath, command, parameter)
+        for item in result:
+            data.append({
+                'Name': item[0],
+                'RecordTime': item[1],
+                'Temperature': item[2],
+                'Humidity': item[3],
+                'IsTempUnusual': item[4],
+                'IsHumiUnusual': item[5]
+            })
+        return data
 
     # select溫度資料(目前for one year)
     def selectTemperature(self, para):

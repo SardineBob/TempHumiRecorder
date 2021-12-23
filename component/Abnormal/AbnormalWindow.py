@@ -1,7 +1,6 @@
 import tkinter as tk
 from component.Abnormal.QueryBar import QueryBar
 from component.Abnormal.AbnormalTable import AbnormalTable
-from component.Abnormal.VideoList import VideoList
 
 
 class AbnormalWindow():
@@ -15,26 +14,21 @@ class AbnormalWindow():
         self.__closeMethod = para["closeMethod"]
         # 開始建立一個子視窗
         self.__window = tk.Toplevel()
-        self.__window.geometry("480x480+50+50")
+        self.__window.geometry("1080x480+50+50")
         # 註冊視窗關閉事件，使用者點擊視窗的X，會觸發
         self.__window.protocol("WM_DELETE_WINDOW", self.__closeMethod)
         # 產生版面
-        # self.__CreatePanel()
+        self.__CreatePanel()
 
     # 產生版面(左版面：異常紀錄清單，右版面：選取異常紀錄之對應的錄影檔)
     def __CreatePanel(self):
         # 設定Grid版面配置比例(最外層主要容器)
         self.__window.grid_columnconfigure(0, weight=1)
-        self.__window.grid_columnconfigure(1, weight=1)
-        self.__window.grid_rowconfigure(2, weight=1)
-        # 建立錄影片段選單
-        videoList = VideoList(self.__window)
+        self.__window.grid_rowconfigure(1, weight=1)
         # 建立異常紀錄清單
-        abnormalTable = AbnormalTable(
-            self.__window, ReloadDataEvent=videoList.LoadData)
+        abnormalTable = AbnormalTable(self.__window)
         # 建立查詢區塊
-        self.queryBar = QueryBar(
-            self.__window, ReloadDataEvent=abnormalTable.LoadData)
+        self.queryBar = QueryBar(self.__window, ReloadDataEvent=abnormalTable.LoadData)
 
     # 視窗關閉，用於外部呼叫
     def WindowClose(self):
