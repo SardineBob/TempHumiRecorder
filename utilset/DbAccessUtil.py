@@ -85,6 +85,8 @@ class DbAccessUtil():
         # 取得查詢條件
         queryRecordDate = datetime.now().strftime('%Y/%m/%d') if "recordDate" not in para else para["recordDate"]
         queryID = None if "tagID" not in para else para["tagID"]
+        queryTempUnusualStatus = None if "tempUnusualStatus" not in para else para["tempUnusualStatus"]
+        queryHumiUnusualStatus = None if "humiUnusualStatus" not in para else para["humiUnusualStatus"]
         # 開始根據條件搜尋
         if queryRecordDate is not None:
             command += " AND RecordTime LIKE :date "
@@ -92,6 +94,14 @@ class DbAccessUtil():
         if queryID is not None:
             command += " AND ID= :id "
             parameter["id"] = queryID
+        if queryTempUnusualStatus is not None:
+            if queryTempUnusualStatus != "all":
+                command += " AND IsTempUnusual= :isTempUnusual "
+                parameter["isTempUnusual"] = 1 if queryTempUnusualStatus == "Y" else 0
+        if queryHumiUnusualStatus is not None:
+            if queryHumiUnusualStatus != "all":
+                command += " AND IsHumiUnusual= :isHumiUnusual "
+                parameter["isHumiUnusual"] = 1 if queryHumiUnusualStatus == "Y" else 0
         # 加入排序語法
         command += " ORDER BY RecordTime DESC "
         # 加工將List<tuple>轉List<Object>型態

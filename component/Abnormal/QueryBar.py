@@ -15,14 +15,26 @@ class QueryBar():
         'AlertCombo': {'row': 1, 'column': 1, 'sticky': 'EWNS'},
         'TempUnusualLabel': {'row': 0, 'column': 2, 'sticky': 'EWNS'},
         'HumiUnusualLabel': {'row': 1, 'column': 2, 'sticky': 'EWNS'},
-        'TempUnusualRadio': {'row': 0, 'column': 3, 'sticky': 'EWNS'},
-        'HumiUnusualRadio': {'row': 1, 'column': 3, 'sticky': 'EWNS'},
+        'TempUnusualBlock': {'row': 0, 'column': 3, 'sticky': 'EWNS'},
+        'HumiUnusualBlock': {'row': 1, 'column': 3, 'sticky': 'EWNS'},
+        # 下面是位於TempUnusualBlock裡面每個RadioButton的grid設定
+        'TempUnusualRadioAll': {'row': 0, 'column': 0, 'sticky': 'W'},
+        'TempUnusualRadioYes': {'row': 0, 'column': 1, 'sticky': 'W'},
+        'TempUnusualRadioNo': {'row': 0, 'column': 2, 'sticky': 'W'},
+        # 下面是位於HumiUnusualBlock裡面每個RadioButton的grid設定
+        'HumiUnusualRadioAll': {'row': 0, 'column': 0, 'sticky': 'W'},
+        'HumiUnusualRadioYes': {'row': 0, 'column': 1, 'sticky': 'W'},
+        'HumiUnusualRadioNo': {'row': 0, 'column': 2, 'sticky': 'W'},
     }
     __QueryBar = None  # 查詢區塊容器
-    __DateBox = None  # 異常日期查詢欄位
+    # __TempUnusualBlock = None # 溫度異常單選項容器
     __AlertCombo = None  # 溫溼度計位置選取欄位
     __DateCondition = None  # 輸入的異常日期查詢條件
     __AlertCondition = None  # 選取的溫溼度計位置查詢條件
+    __TempChooseVal = None  # 綁定溫度異常選項為一組的變數，選取項目的Value會被給予在這邊
+    __HumiChooseVal = None  # 綁定濕度異常選項為一組的變數，選取項目的Value會被給予在這邊
+    __TempUnusualCondition = None  # 選取的溫度異常查詢條件
+    __HumiUnusualCondition = None  # 選取的濕度異常查詢條件
     __ReloadDataEvent = None  # 來自外部，在查詢條件變更時，要呼叫的動作
     __AlertTagList = None  # 溫溼度計位置清單
 
@@ -38,6 +50,11 @@ class QueryBar():
         self.__QueryBar.grid(self.__layout['QueryBar'])
         # 取出查詢條件變更時，要呼叫reload資料的動作
         self.__ReloadDataEvent = para.get('ReloadDataEvent')
+        # 準備/建立/預設單選項所需變數
+        self.__TempChooseVal = tk.StringVar()
+        self.__TempChooseVal.set("all")
+        self.__HumiChooseVal = tk.StringVar()
+        self.__HumiChooseVal.set("all")
         # 建立物件
         self.__Create()
 
@@ -49,6 +66,8 @@ class QueryBar():
         self.__CreateDateBox()
         # 建立警報位置查詢控制項
         self.__CreateAlertCombo()
+        # 建立異常狀態查詢控制選項
+        self.__CreateUnusualRadio()
 
     # 建立控制項標題標籤
     def __CreateLabel(self):
@@ -63,11 +82,11 @@ class QueryBar():
 
     # 建立日期查詢控制項
     def __CreateDateBox(self):
-        self.__DateBox = tk.Entry(self.__QueryBar, font=("微軟正黑體", 12, "bold"))
-        self.__DateBox.grid(self.__layout['DateBox'])
+        DateBox = tk.Entry(self.__QueryBar, font=("微軟正黑體", 12, "bold"))
+        DateBox.grid(self.__layout['DateBox'])
         # 綁定loass focus跟按enter的事件
-        self.__DateBox.bind('<FocusOut>', self.__DateBoxOnchangeEvent)
-        self.__DateBox.bind('<Return>', self.__DateBoxOnchangeEvent)
+        DateBox.bind('<FocusOut>', lambda event, arg=DateBox: self.__DateBoxOnchangeEvent(event, arg))
+        DateBox.bind('<Return>', lambda event, arg=DateBox: self.__DateBoxOnchangeEvent(event, arg))
 
     # 建立溫溼度計位置查詢控制項
     def __CreateAlertCombo(self):
@@ -77,16 +96,50 @@ class QueryBar():
         # 綁定選取下拉選單事件
         self.__AlertCombo.bind("<<ComboboxSelected>>", self.__AlertComboOnchangeEvent)
 
+    # 建立異常狀態查詢選項
+    def __CreateUnusualRadio(self):
+        # 建立一個溫度異常單選項容器，並建構在QueryBar容器中
+        TempUnusualBlock = tk.Frame(self.__QueryBar)
+        HumiUnusualBlock = tk.Frame(self.__QueryBar)
+        # 設定查詢區塊容器的版面配置比例
+        TempUnusualBlock.grid_columnconfigure(0, weight=1)
+        TempUnusualBlock.grid_columnconfigure(1, weight=1)
+        TempUnusualBlock.grid_columnconfigure(2, weight=1)
+        TempUnusualBlock.grid(self.__layout['TempUnusualBlock'])
+        HumiUnusualBlock.grid_columnconfigure(0, weight=1)
+        HumiUnusualBlock.grid_columnconfigure(1, weight=1)
+        HumiUnusualBlock.grid_columnconfigure(2, weight=1)
+        HumiUnusualBlock.grid(self.__layout['HumiUnusualBlock'])
+        # 產生單選項
+        TempUnusualRadAll = tk.Radiobutton(TempUnusualBlock, text="全部", variable=self.__TempChooseVal, value="all")
+        TempUnusualRadYes = tk.Radiobutton(TempUnusualBlock, text="是", variable=self.__TempChooseVal, value="Y")
+        TempUnusualRadNo = tk.Radiobutton(TempUnusualBlock, text="否", variable=self.__TempChooseVal, value="N")
+        HumiUnusualRadAll = tk.Radiobutton(HumiUnusualBlock, text="全部", variable=self.__HumiChooseVal, value="all")
+        HumiUnusualRadYes = tk.Radiobutton(HumiUnusualBlock, text="是", variable=self.__HumiChooseVal, value="Y")
+        HumiUnusualRadNo = tk.Radiobutton(HumiUnusualBlock, text="否", variable=self.__HumiChooseVal, value="N")
+        TempUnusualRadAll.grid(self.__layout["TempUnusualRadioAll"])
+        TempUnusualRadYes.grid(self.__layout["TempUnusualRadioYes"])
+        TempUnusualRadNo.grid(self.__layout["TempUnusualRadioNo"])
+        HumiUnusualRadAll.grid(self.__layout["HumiUnusualRadioAll"])
+        HumiUnusualRadYes.grid(self.__layout["HumiUnusualRadioYes"])
+        HumiUnusualRadNo.grid(self.__layout["HumiUnusualRadioNo"])
+        # 綁定切換單選項事件
+        TempUnusualRadAll.config(command=self.__TempUnusualRadioOnchangeEvent)
+        TempUnusualRadYes.config(command=self.__TempUnusualRadioOnchangeEvent)
+        TempUnusualRadNo.config(command=self.__TempUnusualRadioOnchangeEvent)
+        HumiUnusualRadAll.config(command=self.__HumiUnusualRadioOnchangeEvent)
+        HumiUnusualRadYes.config(command=self.__HumiUnusualRadioOnchangeEvent)
+        HumiUnusualRadNo.config(command=self.__HumiUnusualRadioOnchangeEvent)
+
     # 日期查詢控制項onchange事件
-    def __DateBoxOnchangeEvent(self, event):
+    def __DateBoxOnchangeEvent(self, event, dateBox):
         # 值沒有變不需執行
-        if self.__DateCondition == self.__DateBox.get():
+        if self.__DateCondition == dateBox.get():
             return
         # 強制把輸入空值轉為None
-        self.__DateCondition = None if self.__DateBox.get() == '' else self.__DateBox.get()
+        self.__DateCondition = None if dateBox.get() == '' else dateBox.get()
         # 更新異常紀錄清單
-        if self.__ReloadDataEvent is not None:
-            self.__ReloadDataEvent(recordDate=self.__DateCondition, tagID=self.__AlertCondition)
+        self.__updateUnusualReport()
 
     # 警報位置控制項onchange事件
     def __AlertComboOnchangeEvent(self, event):
@@ -97,8 +150,27 @@ class QueryBar():
         self.__AlertCondition = \
             None if self.__AlertCombo.get() == '' else self.__AlertCombo.get().split('.')[0]
         # 更新異常紀錄清單
-        if self.__ReloadDataEvent is not None:
-            self.__ReloadDataEvent(recordDate=self.__DateCondition, tagID=self.__AlertCondition)
+        self.__updateUnusualReport()
+
+    # 溫度異常狀態查詢控制項onchange事件
+    def __TempUnusualRadioOnchangeEvent(self):
+        # 值沒有變不需執行
+        if self.__TempUnusualCondition == self.__TempChooseVal.get():
+            return
+        # 強制把輸入空值轉為None
+        self.__TempUnusualCondition = None if self.__TempChooseVal.get() == '' else self.__TempChooseVal.get()
+        # 更新異常紀錄清單
+        self.__updateUnusualReport()
+
+    # 濕度異常狀態查詢控制項onchange事件
+    def __HumiUnusualRadioOnchangeEvent(self):
+        # 值沒有變不需執行
+        if self.__HumiUnusualCondition == self.__HumiChooseVal.get():
+            return
+        # 強制把輸入空值轉為None
+        self.__HumiUnusualCondition = None if self.__HumiChooseVal.get() == '' else self.__HumiChooseVal.get()
+        # 更新異常紀錄清單
+        self.__updateUnusualReport()
 
     # 讀取警報點位置選取清單
     def __getAlertNameList(self):
@@ -109,6 +181,14 @@ class QueryBar():
             list.append(itemText)
         self.__AlertTagList = list
         return list
+
+    # 更新異常清單
+    def __updateUnusualReport(self):
+        if self.__ReloadDataEvent is not None:
+            self.__ReloadDataEvent(recordDate=self.__DateCondition,
+                                   tagID=self.__AlertCondition,
+                                   tempUnusualStatus=self.__TempUnusualCondition, 
+                                   humiUnusualStatus=self.__HumiUnusualCondition)
 
     # 提供外界直接切換至某警示點檢視異常紀錄的方法
     def QueryAlertCombo(self, tagID, tagName):
