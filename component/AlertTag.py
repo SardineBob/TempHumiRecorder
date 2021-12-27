@@ -182,33 +182,6 @@ class AlertTag(Tag):
             self.__task.start()
             # 啟動異常警示語音播報
             self.__buzzer.trigger()
-            # 產生觸發時間與錄影檔名
-            #nowTime = datetime.now()
-            #cameraInfo = []
-            # 觸發啟動攝影機動作
-            # for camera in self.__cameraMappingTag:
-            #    # 開啟攝影機畫面
-            #    camera.openRtspBox()
-            #    # 觸發錄影動作
-            #    filename = nowTime.strftime('%Y%m%d%H%M%S') + \
-            #        "-Alert" + str(self.pointid) + \
-            #        "-Camera" + str(camera.pointid) + ".avi"
-            #    RtspRecord({'cameraTagID': camera.pointid,
-            #                'recordFileName': filename})
-            #    # 蒐集錄影檔名，準備寫入DB
-            #    cameraInfo.append({
-            #        'cameraID': camera.pointid,
-            #        'cameraName': camera.name,
-            #        'recordFileName': filename
-            #    })
-            # 警示觸發時，記錄一筆異常紀錄
-            #triggerTime = nowTime.strftime('%Y/%m/%d %H:%M:%S')
-            # AbnormalUtil().InsertAbnormalRecord({
-            #    'alertTime': triggerTime,
-            #    'alertID': self.pointid,
-            #    'alertName': self.name,
-            #    'cameraInfo': cameraInfo
-            # })
 
     # 停止警報觸發動作，停止背景閃爍
     def TriggerStop(self):
@@ -227,9 +200,9 @@ class AlertTag(Tag):
 
     # 連結異常紀錄清單，點擊該AlertTag的時候，開啟異常紀錄視窗，並直接切換到這一個溫溼度計的異常紀錄清單
     def linkAbnormalWindow(self, openMethod):
-       # 註冊開啟異常紀錄視窗事件
-       self.canvas.tag_bind(self.tagid, '<Double-Button-1>',
-                            lambda event: openMethod().queryBar.QueryAlertCombo(self.pointid, self.name))
+        # 註冊開啟異常紀錄視窗事件
+        self.canvas.tag_bind(self.tagid, '<Double-Button-1>',
+                             lambda event: openMethod().queryBar.QueryAlertCombo(self.pointid, self.name))
 
     # 點擊該AlertTag動作，告警發生時，可關閉告警；無告景下點擊則開啟紀錄清單視窗，並直接切換到這一個警示點的異常紀錄清單
     def __TagClick(self):
