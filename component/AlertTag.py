@@ -95,7 +95,7 @@ class AlertTag(Tag):
     # 小米溫濕度計藍芽數值第三方元件，擷取溫溼度並寫入檔案
     def readMiDevice(self):
         # 開啟子程序，call第三方程式，擷取溫濕度計數值回來
-        subprocess.Popen('sudo python3 LYWSD03MMC.py -d ' + self.__deviceMac + ' -r -b',shell=True)
+        subprocess.Popen('sudo python3 component/LYWSD03MMC.py -d ' + self.__deviceMac + ' -r -b',shell=True)
 
     # 讀取溫溼度檔案，呈現最新數據
     def readTempHumiData(self):
