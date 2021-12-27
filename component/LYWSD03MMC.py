@@ -223,7 +223,7 @@ def calibrateHumidity2Points(humidity, offset1, offset2, calpoint1, calpoint2):
 mode = "round"
 
 # 把溫溼度跟電量寫進與監控整合的file內
-def __writeFile(data):
+def writeFile(data):
     # get data
     mac = data["MAC"]
     temp = data["Temp"]
@@ -295,7 +295,7 @@ class MyDelegate(btle.DefaultDelegate):
             print("Battery level:", batteryLevel)
 
             # write file
-            __writeFile({
+            writeFile({
                 "MAC": macAddress,
                 "Temp": str(temp),
                 "Humi": str(humidity),
