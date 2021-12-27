@@ -19,11 +19,8 @@ class UnusualReportTag(Tag):
     __tagsName = "report"  # 標籤名稱，綁定canvas繪製物件的標籤
     __openReportStatus = False  # 開啟報表視窗狀態
     __reportWindow = None  # 報表視窗物件
-    __dbAccessUtil = None  # sqlite db物件
 
     def __init__(self, canvas, relocate):
-        # 取出需用到的設定值
-        self.__dbAccessUtil = DbAccessUtil()
         # open警報點標籤的icon image
         picLoad = Image.open(self.__picPath)
         picPhoto = ImageTk.PhotoImage(picLoad)

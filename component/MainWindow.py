@@ -1,6 +1,7 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
 from utilset.ConfigUtil import ConfigUtil
+import platform
 from component.Map import Map
 from component.WindowRelocate import WindowRelocate
 from component.UnusualReportTag import UnusualReportTag
@@ -20,25 +21,24 @@ class MainWindow():
     __windowRelocate = None
     __menuTags = []
     __alertTags = []
-    __cameraTags = []
     __AbnormalWindow = None
 
-    # 測試用
-    __window = None
-    __window1 = None
-    __window2 = None
-    __window3 = None
-
     def __init__(self):
-        # 準備主要視窗設定
-        self.__mainWindow = tk.Tk()
-        self.__mainWindow.title("溫溼度監控器(ver.0.1.0)")
-        self.__mainWindow.geometry("%dx%d" % (
-            self.__originWidth, self.__originHeight))
-        # 註冊視窗事件
-        self.__mainWindow.bind('<Configure>', self.__windowResize)
         # 讀取保全器材位置設定檔
         self.__configUtil = ConfigUtil()
+        # 準備主要視窗設定
+        self.__mainWindow = tk.Tk()
+        self.__mainWindow.title("溫溼度監控器(ver.1.0.0)-" + self.__configUtil.DeviceName +
+                                "(" + self.__configUtil.DeviceID + ")")
+        self.__mainWindow.geometry("%dx%d" % (self.__originWidth, self.__originHeight))
+        self.__mainWindow.protocol("WM_DELETE_WINDOW", False)  # 不允許使用者離開視窗
+        # 判斷作業系統環境，Window則該程式屬性指定為toolwindow，反之指定為fullscreen
+        if platform.system() is "Windows":
+            self.__mainWindow.attributes("-toolwindow", True)  # in window
+        else:
+            self.__mainWindow.attributes("-fullscreen", True)  # in raspberrypi
+        # 註冊視窗事件
+        self.__mainWindow.bind('<Configure>', self.__windowResize)
         # 產生繪圖物件
         self.__canvas = tk.Canvas(
             width=self.__curWidth, height=self.__curHeight, bg="black")
@@ -61,112 +61,6 @@ class MainWindow():
         # 建立溫溼度標籤與異常清單連結關係
         for item in self.__alertTags:
             item.linkAbnormalWindow(self.__openAbnormalWindow)
-        # 產生攝影機標籤位置
-        # for item in self.__configUtil.cameraPoints:
-        #    self.__cameraTags.append(
-        #        CameraTag(self.__canvas, self.__windowRelocate, item))
-        # 建立保全器材(警報點)與其他組件連結關係
-        # for item in self.__alertTags:
-        #    # 建立保全器材(警報點)與攝影機的連結關係
-        #    item.linkCamera(self.__cameraTags)
-        #    # 建立保全器材(警報點)與異常紀錄視窗的連結關係
-        #    item.linkAbnormalWindow(self.__openAbnormalWindow)
-        # 建立攝影機與RTSP視窗的連結關係
-        # for item in self.__cameraTags:
-        #    item.linkRtspWindow(self.__RtspWindow)
-        # 設定開啟與樹梅派建立連線時，才去連線，避免開發過程中一直連線
-        # if self.__configUtil.SystemConfig.IsLinkRaspberry:
-        #    # 建立與多台樹梅派的WebSocket連線物件
-        #    for item in self.__configUtil.RaspberryPis:
-        #        self.__raspberryPi.append(RaspberryPiSignal(item))
-        #    # 建立樹梅派與其他組件的連結關係
-        #    for item in self.__raspberryPi:
-        #        item.linkAlert(self.__alertTags)
-
-        # 給兩個按鈕來測試閃爍
-        def click1():
-            self.__alertTags[4].TriggerAlert()
-
-        def click2():
-            for tag in self.__alertTags:
-                tag.TriggerStop()
-            # self.__alertTags[2].TriggerStop()
-            # for item in self.__cameraTags:
-            #    item.RtspStop()
-            # self.__test.closeTask()
-
-        def click3():
-            self.__test = RaspberryPiSignal(self.__alertTags)
-
-        def click4():
-            self.__openAbnormalWindow()
-            # 自訂一個dialog box
-            #test = tk.Tk()
-            #test.master = self.__mainWindow
-            # test.mainloop()
-            # messagebox.showinfo('555')
-            #test = tk.Frame(self.__mainWindow)
-            # tk.Label(test,text="testestse").pack()
-            #test.place(x=150, y=10)
-            # test.pack()
-            #self.newfream = tk.Toplevel()
-            # self.newfream.resizable(0,0)
-            # self.newfream.attributes('-toolwindow',True)
-            # self.newfream.wm_attributes('-topmost',True)
-            # self.newfream.wm_overrideredirect(True)
-            # self.newfream.geometry("640x480+50+50")
-
-        def click5():
-            self.__closeAbnormalWindow()
-            # test.mainloop()
-
-            # def click3():
-            # self.__window = CameraWindow(
-            #    'rtsp://wowzaec2demo.streamlock.net/vod/mp4:BigBuckBunny_115k.mov', 100, 100)
-            # self.__window1 = CameraWindow(
-            #    'rtsp://wowzaec2demo.streamlock.net/vod/mp4:BigBuckBunny_115k.mov', 100, 270)
-            # self.__window2 = CameraWindow(
-            #    'rtsp://wowzaec2demo.streamlock.net/vod/mp4:BigBuckBunny_115k.mov', 350, 100)
-            # self.__window3 = CameraWindow(
-            #    'rtsp://wowzaec2demo.streamlock.net/vod/mp4:BigBuckBunny_115k.mov', 350, 270)
-            # self.__window.Start()
-            # self.__window1.Start()
-            # self.__window2.Start()
-            # self.__window3.Start()
-
-        # def click6():
-            # self.__openRtspBox()
-
-        # def click7():
-            # self.__closeRtspWindow()
-
-        #button1 = tk.Button(text='啟動', command=click1)
-        #button1.place(x=10, y=10)
-        #button2 = tk.Button(text='停止', command=click2)
-        #button2.place(x=50, y=10)
-        #button3 = tk.Button(text='連線', command=click3)
-        #button3.place(x=90, y=10)
-        button4 = tk.Button(text='開啟報表', command=click4)
-        button4.place(x=130, y=10)
-        #button5 = tk.Button(text='關閉報表', command=click5)
-        #button5.place(x=200, y=10)
-        #button4 = tk.Button(text='開啟攝影機畫面', command=click6)
-        #button4.place(x=270, y=10)
-        #button5 = tk.Button(text='關閉攝影機畫面', command=click7)
-        #button5.place(x=370, y=10)
-        #button3 = tk.Button(text='播放', command=click3)
-        #button3.place(x=90, y=10)
-
-        # 測試表格
-        #treeview = ttk.Treeview()
-        # treeview["columns"]=("colume1","colume2","colume3")
-#
-        # treeview.heading("#0",text="OK", anchor=tk.W)
-        # treeview.heading("colume1",text="OK")
-        # treeview.heading("colume2",text="OK1")
-        # treeview.heading("colume3",text="OK3")
-        #treeview.place(x=300, y=300)
-
         # 開啟視窗
         self.__mainWindow.mainloop()
 
