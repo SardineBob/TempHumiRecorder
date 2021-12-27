@@ -1,5 +1,6 @@
 import os
 import json
+import subprocess
 from component.Tag import Tag
 from PIL import Image, ImageTk
 import time
@@ -93,15 +94,8 @@ class AlertTag(Tag):
 
     # 小米溫濕度計藍芽數值第三方元件，擷取溫溼度並寫入檔案
     def readMiDevice(self):
-        # 開始寫入檔案
-        fileName = self.__deviceMac.replace(":", "-")
-        deviceFile = os.path.join(self.__deviceRootPath, fileName)
-        # 檢查資料夾是否存在
-        if os.path.exists(self.__deviceRootPath) is False:
-            os.makedirs(self.__deviceRootPath)
-        # 寫入溫溼度資料
-        with open(deviceFile, 'w', encoding='UTF8') as file:
-            file.write(json.dumps({"Temp": 36.5, "Humi": 35, "Battery": 96}, ensure_ascii=False))
+        # 開啟子程序，call第三方程式，擷取溫濕度計數值回來
+        subprocess.Popen('sudo python3 LYWSD03MMC.py -d ' + self.__deviceMac + ' -r -b',shell=True)
 
     # 讀取溫溼度檔案，呈現最新數據
     def readTempHumiData(self):
