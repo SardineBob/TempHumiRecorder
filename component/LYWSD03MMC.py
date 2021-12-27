@@ -250,7 +250,7 @@ def deleteFile(mac):
     fileName = mac.replace(":", "-")
     deviceFile = os.path.join(deviceRootPath, fileName)
     # check folder exists
-    if os.path.exists(deviceRootPath) is False:
+    if os.path.exists(deviceRootPath) is True:
         os.remove(deviceRootPath)
 
 
