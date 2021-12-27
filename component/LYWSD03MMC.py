@@ -223,6 +223,8 @@ def calibrateHumidity2Points(humidity, offset1, offset2, calpoint1, calpoint2):
 mode = "round"
 
 # 把溫溼度跟電量寫進與監控整合的file內
+
+
 def writeFile(data):
     # get data
     mac = data["MAC"]
@@ -239,6 +241,18 @@ def writeFile(data):
     # write infomation to file
     with open(deviceFile, 'w', encoding='UTF8') as f:
         f.write(json.dumps({"Temp": temp, "Humi": Humi, "Battery": Battery}, ensure_ascii=False))
+
+
+# 失去連線則移除監控整合的file
+def deleteFile(mac):
+    # get root path
+    deviceRootPath = args.devicerootpath
+    fileName = mac.replace(":", "-")
+    deviceFile = os.path.join(deviceRootPath, fileName)
+    # check folder exists
+    if os.path.exists(deviceRootPath) is False:
+        os.remove(deviceRootPath)
+
 
 class MyDelegate(btle.DefaultDelegate):
     def __init__(self, params):
@@ -585,6 +599,7 @@ if args.device:
                 continue
         except Exception as e:
             print("Connection lost")
+            deleteFile(macAddress)
             connectionLostCounter += 1
             if connected is True:  # First connection abort after connected
                 unconnectedTime = int(time.time())
