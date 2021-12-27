@@ -95,7 +95,8 @@ class AlertTag(Tag):
     # 小米溫濕度計藍芽數值第三方元件，擷取溫溼度並寫入檔案
     def readMiDevice(self):
         # 開啟子程序，call第三方程式，擷取溫濕度計數值回來
-        subprocess.Popen('sudo python3 component/LYWSD03MMC.py -d ' + self.__deviceMac + ' -r -b -dp ' + self.__deviceRootPath + ' ',shell=True)
+        subprocess.Popen('sudo python3 component/LYWSD03MMC.py -d ' + self.__deviceMac +
+                         ' -r -b -dp ' + self.__deviceRootPath + ' ', shell=True)
 
     # 讀取溫溼度檔案，呈現最新數據
     def readTempHumiData(self):
@@ -143,11 +144,11 @@ class AlertTag(Tag):
 
     # 判斷目前溫度，是否異常，超出設定界線則觸發告警
     def checkTemp(self, nowTemp):
-        return nowTemp >= self.__lowLimitTemp and nowTemp <= self.__upLimitTemp
+        return float(nowTemp) >= float(self.__lowLimitTemp) and float(nowTemp) <= float(self.__upLimitTemp)
 
     # 判斷目前濕度，是否異常，超出設定界線則觸發告警
     def checkHumi(self, nowHumi):
-        return nowHumi >= self.__lowLimitHumi and nowHumi <= self.__upLimitHumi
+        return float(nowHumi) >= float(self.__lowLimitHumi) and float(nowHumi) <= float(self.__upLimitHumi)
 
     # 將收到的溫溼度寫入sqlite db
     def insertTempHumiData(self, data):
