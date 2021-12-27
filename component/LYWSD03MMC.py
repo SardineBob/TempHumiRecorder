@@ -277,6 +277,14 @@ class MyDelegate(btle.DefaultDelegate):
             measurement.battery = batteryLevel
             print("Battery level:", batteryLevel)
 
+            # write file
+            __writeFile({
+                "MAC": macAddress,
+                "Temp": str(temp),
+                "Humi": str(humidity),
+                "Battery": batteryLevel
+            })
+
             if args.offset:
                 humidityCalibrated = humidity + args.offset
                 print("Calibrated humidity: " + str(humidityCalibrated))
@@ -761,14 +769,6 @@ elif args.atc:
                     print("Battery voltage:", batteryVoltage, "V")
                 print("RSSI:", rssi, "dBm")
                 print("Battery:", batteryPercent, "%")
-
-                # write file
-                __writeFile({
-                    "MAC": macAddress,
-                    "Temp": temperature,
-                    "Humi": humidity,
-                    "Battery": batteryPercent
-                })
 
                 currentMQTTTopic = MQTTTopic
                 if mac in sensors:
