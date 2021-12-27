@@ -348,7 +348,8 @@ parser.add_argument("--interface", "-i", help="Specifiy the interface number to 
 parser.add_argument("--unreachable-count", "-urc", help="Exit after N unsuccessful connection tries",
                     metavar='N', type=int, default=0)
 parser.add_argument("--mqttconfigfile", "-mcf", help="specify a configurationfile for MQTT-Broker")
-
+parser.add_argument("--devicerootpath", "-dp", help="設定擷取到溫濕度計數值，要寫入檔案的root path",
+                    metavar='/device/')
 
 rounding = parser.add_argument_group("Rounding and debouncing")
 rounding.add_argument(
