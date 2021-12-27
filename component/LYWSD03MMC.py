@@ -249,9 +249,9 @@ def deleteFile(mac):
     deviceRootPath = args.devicerootpath
     fileName = mac.replace(":", "-")
     deviceFile = os.path.join(deviceRootPath, fileName)
-    # check folder exists
-    if os.path.exists(deviceRootPath) is True:
-        os.remove(deviceRootPath)
+    # check file exists
+    if os.path.isfile.exists(deviceFile) is True:
+        os.remove(deviceFile)
 
 
 class MyDelegate(btle.DefaultDelegate):
