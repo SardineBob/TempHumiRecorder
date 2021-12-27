@@ -1,3 +1,5 @@
+import os
+import shutil
 import tkinter as tk
 from tkinter import ttk, messagebox
 from utilset.ConfigUtil import ConfigUtil
@@ -53,6 +55,9 @@ class MainWindow():
             'oriMapWidth': self.__map.mapOriginWidth,
             'oriMapHeight': self.__map.mapOriginHeight
         })
+        # 執行刪除介接資料夾動作
+        if os.path.exists(self.__configUtil.DeviceRootPath):
+            shutil.rmtree(self.__configUtil.DeviceRootPath)
         # 產生Menu標籤
         self.__menuTags.append(UnusualReportTag(self.__canvas, self.__windowRelocate))
         # 產生溫溼度計標籤位置
