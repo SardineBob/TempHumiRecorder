@@ -1,7 +1,6 @@
 #!/usr/bin/python3 -u
 # -u to unbuffer output. Otherwise when calling with nohup or redirecting output things are printed very lately or would even mixup
 
-from utilset.ConfigUtil import ConfigUtil
 import ssl
 import requests
 import json
@@ -824,7 +823,7 @@ def __writeFile(data):
     Humi = data["Humi"]
     Battery = data["Battery"]
     # get root path
-    deviceRootPath = ConfigUtil().DeviceRootPath
+    deviceRootPath = args.deviceRootPath
     fileName = mac.replace(":", "-")
     deviceFile = os.path.join(deviceRootPath, fileName)
     # check folder exists
