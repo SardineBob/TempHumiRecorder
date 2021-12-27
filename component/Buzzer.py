@@ -9,7 +9,7 @@ class Buzzer():
     __alertSoundTask = None  # 警報進行中的執行緒，負責不斷撥放警報語音
     __alertUnusual = False
     __alertSoundPath = "./resource/alert.mp3"
-    __alertOn = False  # 是否啟動警報機制，預設關閉
+    __alertOn = True  # 是否啟動警報機制，預設關閉
 
     # 初始化，建立警報語音撥放執行緒
     def __init__(self):
