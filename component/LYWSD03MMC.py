@@ -222,6 +222,23 @@ def calibrateHumidity2Points(humidity, offset1, offset2, calpoint1, calpoint2):
 
 mode = "round"
 
+# 把溫溼度跟電量寫進與監控整合的file內
+def __writeFile(data):
+    # get data
+    mac = data["MAC"]
+    temp = data["Temp"]
+    Humi = data["Humi"]
+    Battery = data["Battery"]
+    # get root path
+    deviceRootPath = args.deviceRootPath
+    fileName = mac.replace(":", "-")
+    deviceFile = os.path.join(deviceRootPath, fileName)
+    # check folder exists
+    if os.path.exists(deviceRootPath) is False:
+        os.makedirs(deviceRootPath)
+    # write infomation to file
+    with open(deviceFile, 'w', encoding='UTF8') as f:
+        f.write(json.dumps({"Temp": temp, "Humi": Humi, "Battery": Battery}, ensure_ascii=False))
 
 class MyDelegate(btle.DefaultDelegate):
     def __init__(self, params):
@@ -814,22 +831,3 @@ elif args.atc:
                                     debug=False)
     except KeyboardInterrupt:
         disable_le_scan(sock)
-
-
-# 把溫溼度跟電量寫進與監控整合的file內
-def __writeFile(data):
-    # get data
-    mac = data["MAC"]
-    temp = data["Temp"]
-    Humi = data["Humi"]
-    Battery = data["Battery"]
-    # get root path
-    deviceRootPath = args.deviceRootPath
-    fileName = mac.replace(":", "-")
-    deviceFile = os.path.join(deviceRootPath, fileName)
-    # check folder exists
-    if os.path.exists(deviceRootPath) is False:
-        os.makedirs(deviceRootPath)
-    # write infomation to file
-    with open(deviceFile, 'w', encoding='UTF8') as f:
-        f.write(json.dumps({"Temp": temp, "Humi": Humi, "Battery": Battery}, ensure_ascii=False))
