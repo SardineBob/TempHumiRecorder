@@ -230,7 +230,7 @@ def writeFile(data):
     Humi = data["Humi"]
     Battery = data["Battery"]
     # get root path
-    deviceRootPath = args.deviceRootPath
+    deviceRootPath = args.devicerootpath
     fileName = mac.replace(":", "-")
     deviceFile = os.path.join(deviceRootPath, fileName)
     # check folder exists
