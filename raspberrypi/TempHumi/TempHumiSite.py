@@ -3,8 +3,9 @@ from markupsafe import escape
 import os
 import subprocess
 
-__deviceMacListFileName = "deviceMacList.ini"
-__deviceRootPath = "/home/pi/Projects/TempHumiRecorder/devices"
+__rootPath = "/home/pi/Projects/TempHumiRecorder"
+__deviceMacListFileName = f"{__rootPath}/deviceMacList.ini"
+__deviceRootPath = f"{__rootPath}/devices"
 app = Flask("TempHumiSite")
 
 
