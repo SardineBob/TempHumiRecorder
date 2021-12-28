@@ -6,6 +6,7 @@ import subprocess
 __rootPath = "/home/pi/Projects/TempHumiRecorder"
 __deviceMacListFileName = f"{__rootPath}/deviceMacList.ini"
 __deviceRootPath = f"{__rootPath}/devices"
+__LYWSD03MMCPath = f"{__rootPath}/raspberrypi/TempHumi"
 app = Flask("TempHumiSite")
 
 
@@ -19,7 +20,7 @@ def actCaptrueTempHumi():
         for mac in file.readlines():
             mac = mac.strip()
             # 開啟子程序，call第三方程式，擷取溫濕度計數值回來
-            subprocess.Popen(f'python3 LYWSD03MMC.py -d {mac} -r -b -dp {__deviceRootPath} ', shell=True)
+            subprocess.Popen(f'python3 {__LYWSD03MMCPath}/LYWSD03MMC.py -d {mac} -r -b -dp {__deviceRootPath} ', shell=True)
 
 
 actCaptrueTempHumi()
