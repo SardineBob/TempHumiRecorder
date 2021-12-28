@@ -14,3 +14,6 @@
 # 安裝Sqllite3
 ## pip install pysqlite3
 
+# 安裝flask
+## pip install flask
+
