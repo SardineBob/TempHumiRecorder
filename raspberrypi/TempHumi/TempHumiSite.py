@@ -4,7 +4,7 @@ import os
 import subprocess
 
 __deviceMacListFileName = "deviceMacList.ini"
-__deviceRootPath = "C://Bob//13.PythonProject//TempHumiRecorder//raspberrypi//TempHumi//devices"
+__deviceRootPath = "/home/pi/Projects/TempHumiRecorder/devices"
 app = Flask("TempHumiSite")
 
 
@@ -15,9 +15,13 @@ def actCaptrueTempHumi():
         print("尚未設定裝置Mac清單")
         return
     with open(__deviceMacListFileName, "r") as file:
-        for mac in file.readlines:
+        for mac in file.readlines():
+            mac = mac.strip()
             # 開啟子程序，call第三方程式，擷取溫濕度計數值回來
             subprocess.Popen(f'python3 LYWSD03MMC.py -d {mac} -r -b -dp {__deviceRootPath} ', shell=True)
+
+
+actCaptrueTempHumi()
 
 
 # 存取設定頁面
@@ -68,7 +72,8 @@ def settingSave():
 @app.route("/TempHumi/<MacAddress>")
 def getTempHumi(MacAddress):
     macAddress = escape(MacAddress)
-    macFilePath = os.path.join(__deviceRootPath, macAddress)
+    macFile = macAddress.replace(":", "-")
+    macFilePath = os.path.join(__deviceRootPath, macFile)
     # 找不到屬於該Mac的檔案，回傳none識別
     if not os.path.isfile(macFilePath):
         return "none"
@@ -77,4 +82,4 @@ def getTempHumi(MacAddress):
         return file.read()
 
 
-app.run(port=9453)
+app.run(host="0.0.0.0", port=9453)
