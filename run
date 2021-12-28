@@ -1,2 +1,2 @@
-cd /home/pi/Project/TempHumiRecorder/raspberrypi/TempHumi/
+cd /home/pi/Projects/TempHumiRecorder/raspberrypi/TempHumi/
 python3 TempHumiSite.py
