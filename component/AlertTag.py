@@ -1,13 +1,11 @@
 import os
 import json
-import subprocess
+from urllib import request
 from component.Tag import Tag
 from PIL import Image, ImageTk
 import time
 import threading
-from datetime import datetime
 from utilset.ConfigUtil import ConfigUtil
-from utilset.AbnormalUtil import AbnormalUtil
 from utilset.DbAccessUtil import DbAccessUtil
 from component.Buzzer import Buzzer
 
@@ -31,6 +29,7 @@ class AlertTag(Tag):
     __deviceRootPath = None  # 與第三方元件取得小米溫濕度數值後，寫入的檔案root位置
     __buzzer = None  # 蜂鳴警報器物件
     __dbAccessUtil = None  # sqlite db物件
+    __raspberryUrl = "http://raspberrypi:9453/TempHumi/"  # 架設溫溼度數據於樹梅派站台URL
 
     def __init__(self, canvas, relocate, configItem):
         # 取出需用到的設定值
@@ -59,8 +58,6 @@ class AlertTag(Tag):
         self.CreateDataTag()
         # 綁定標籤點擊事件
         self.canvas.tag_bind(self.__tagsName, '<Button-1>', lambda event: self.__TagClick())
-        # 預設狀態環為未與小米溫度計藍芽連接
-        self.setOnlineStatus(False)
         # 建立溫溼度訊號執行緒
         self.createThreadTask()
 
@@ -82,64 +79,56 @@ class AlertTag(Tag):
 
     # 建立執行緒動作
     def createThreadTask(self):
-        # 建立一個執行緒，觸發擷取小米溫濕度計藍芽數值第三方元件，並持續寫入檔案
-        readMiDeviceTask = threading.Thread(target=self.readMiDevice)
-        readMiDeviceTask.setDaemon(True)
-        readMiDeviceTask.start()
-        time.sleep(1)
         # 建立一個執行緒，觸發透過溫溼度數值檔案，將最新數據呈現
         readTempHumiDataTask = threading.Thread(target=self.readTempHumiData)
         readTempHumiDataTask.setDaemon(True)
         readTempHumiDataTask.start()
 
-    # 小米溫濕度計藍芽數值第三方元件，擷取溫溼度並寫入檔案
-    def readMiDevice(self):
-        # 開啟子程序，call第三方程式，擷取溫濕度計數值回來
-        subprocess.Popen('python3 component/LYWSD03MMC.py -d ' + self.__deviceMac +
-                         ' -r -b -dp ' + self.__deviceRootPath + ' ', shell=True)
-
     # 讀取溫溼度檔案，呈現最新數據
     def readTempHumiData(self):
         offlineCount = 0  # 讀取不到檔案幾次顯示離線(6次，6*5=30秒)
         captureTime = ConfigUtil().CaptureTime
-        # 開始讀取檔案
-        fileName = self.__deviceMac.replace(":", "-")
-        deviceFile = os.path.join(self.__deviceRootPath, fileName)
         # 每設定秒數讀取一次檔案的數值
         while True:
-            # 讀取不到檔案，累計次數，達上限數顯示離線
-            if os.path.isfile(deviceFile) is False:
-                if(offlineCount >= 6):
+            # 向樹梅派溫溼度數據站台取得資料
+            try:
+                with request.urlopen(f"{self.__raspberryUrl}{self.__deviceMac}") as res:
+                    resData = str(res.read().decode("utf-8"))
+            except:
+                print(offlineCount, '無法連線，嘗試重連。')
+                resData = "none"
+            # 站台回傳none訊息，表示無此Mac的溫溼度數據檔案資料，則表示離線狀態
+            if resData == "none":
+                if(offlineCount >= 5):
                     self.setOnlineStatus(False)
+                    self.TriggerAlert()
                 offlineCount = offlineCount + 1
                 time.sleep(captureTime)
                 continue
-            # 讀取最新數值
-            with open(deviceFile, 'r') as file:
-                # 只有一行，json資料結構
-                data = json.loads(file.readline())
-                # 於畫面上更新數值
-                self.canvas.itemconfig(self.__dataTag, text="電量:%s%%\n溫度:%s℃\n濕度:%s%%" %
-                                       (data["Battery"], data["Temp"], data["Humi"]))
-                # 檢查目前溫溼度數值是否異常
-                tempIsOK = self.checkTemp(data["Temp"])
-                humiIsOK = self.checkTemp(data["Humi"])
-                # 執行寫入db
-                self.insertTempHumiData({
-                    "Temp": data["Temp"],
-                    "Humi": data["Humi"],
-                    "Battery": data["Battery"],
-                    "TempIsOK": tempIsOK,
-                    "HumiIsOK": humiIsOK
-                })
-                # 溫溼度其中一個異常，觸發告警
-                if tempIsOK is False or humiIsOK is False:
-                    self.TriggerAlert()
-                else:
-                    self.TriggerStop()  # 異常恢復，自動關閉告警
-                # 成功讀取最新數值，offline狀態清空
-                offlineCount = 0
-                self.setOnlineStatus(True)
+            # 讀取最新數值，只有一行，json資料結構
+            data = json.loads(resData)
+            # 於畫面上更新數值
+            self.canvas.itemconfig(self.__dataTag, text="電量:%s%%\n溫度:%s℃\n濕度:%s%%" %
+                                   (data["Battery"], data["Temp"], data["Humi"]))
+            # 檢查目前溫溼度數值是否異常
+            tempIsOK = self.checkTemp(data["Temp"])
+            humiIsOK = self.checkTemp(data["Humi"])
+            # 執行寫入db
+            self.insertTempHumiData({
+                "Temp": data["Temp"],
+                "Humi": data["Humi"],
+                "Battery": data["Battery"],
+                "TempIsOK": tempIsOK,
+                "HumiIsOK": humiIsOK
+            })
+            # 溫溼度其中一個異常，觸發告警
+            if tempIsOK is False or humiIsOK is False:
+                self.TriggerAlert()
+            else:
+                self.TriggerStop()  # 異常恢復，自動關閉告警
+            # 成功讀取最新數值，offline狀態清空
+            offlineCount = 0
+            self.setOnlineStatus(True)
             time.sleep(captureTime)
 
     # 判斷目前溫度，是否異常，超出設定界線則觸發告警

@@ -38,7 +38,7 @@ class Tag():
         # 繪製Tag狀態環，可根據Tag特性，透過顏色識別目前物件的狀態
         self.ringid = self.canvas.create_oval(
             self.getRingCoords(self.tagX, self.tagY),
-            outline='#000000',
+            outline='#ff0000',
             width=3
         )
 
