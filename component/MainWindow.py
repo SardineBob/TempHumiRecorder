@@ -33,12 +33,12 @@ class MainWindow():
         self.__mainWindow.title("溫溼度監控器(ver.1.0.0)-" + self.__configUtil.DeviceName +
                                 "(" + self.__configUtil.DeviceID + ")")
         self.__mainWindow.geometry("%dx%d" % (self.__originWidth, self.__originHeight))
-        self.__mainWindow.protocol("WM_DELETE_WINDOW", False)  # 不允許使用者離開視窗
+        # self.__mainWindow.protocol("WM_DELETE_WINDOW", False)  # 不允許使用者離開視窗
         # 判斷作業系統環境，Window則該程式屬性指定為toolwindow，反之指定為fullscreen
-        if platform.system() is "Windows":
-            self.__mainWindow.attributes("-toolwindow", True)  # in window
-        else:
-            self.__mainWindow.attributes("-fullscreen", True)  # in raspberrypi
+        # if platform.system() is "Windows":
+        #     self.__mainWindow.attributes("-toolwindow", True)  # in window
+        # else:
+        #     self.__mainWindow.attributes("-fullscreen", True)  # in raspberrypi
         # 註冊視窗事件
         self.__mainWindow.bind('<Configure>', self.__windowResize)
         # 產生繪圖物件
