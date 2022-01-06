@@ -42,7 +42,7 @@ class AlertTag(Tag):
         self.__lowLimitTemp = configItem["templowlimit"]
         self.__upLimitHumi = configItem["humiuplimit"]
         self.__lowLimitHumi = configItem["humilowlimit"]
-        self.__deviceRootPath = ConfigUtil().DeviceRootPath
+        self.__raspberryUrl = ConfigUtil().DeviceUrl
         self.__buzzer = Buzzer()
         self.__dbAccessUtil = DbAccessUtil()
         # open警報點標籤的icon image

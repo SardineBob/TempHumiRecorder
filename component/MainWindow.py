@@ -55,9 +55,6 @@ class MainWindow():
             'oriMapWidth': self.__map.mapOriginWidth,
             'oriMapHeight': self.__map.mapOriginHeight
         })
-        # 執行刪除介接資料夾動作
-        if os.path.exists(self.__configUtil.DeviceRootPath):
-            shutil.rmtree(self.__configUtil.DeviceRootPath)
         # 產生Menu標籤
         self.__menuTags.append(UnusualReportTag(self.__canvas, self.__windowRelocate))
         # 產生溫溼度計標籤位置
