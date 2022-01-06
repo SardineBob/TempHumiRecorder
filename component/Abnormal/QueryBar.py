@@ -1,6 +1,7 @@
 import tkinter as tk
-from tkinter import ttk
+from tkinter import ttk, filedialog
 from utilset.ConfigUtil import ConfigUtil
+from utilset.DbAccessUtil import DbAccessUtil
 
 
 class QueryBar():
@@ -17,6 +18,7 @@ class QueryBar():
         'HumiUnusualLabel': {'row': 1, 'column': 2, 'sticky': 'EWNS'},
         'TempUnusualBlock': {'row': 0, 'column': 3, 'sticky': 'EWNS'},
         'HumiUnusualBlock': {'row': 1, 'column': 3, 'sticky': 'EWNS'},
+        'CSVBlock': {'row': 0, 'column': 4, 'sticky': 'EWNS', 'rowspan': 2},
         # 下面是位於TempUnusualBlock裡面每個RadioButton的grid設定
         'TempUnusualRadioAll': {'row': 0, 'column': 0, 'sticky': 'W'},
         'TempUnusualRadioYes': {'row': 0, 'column': 1, 'sticky': 'W'},
@@ -47,6 +49,7 @@ class QueryBar():
         self.__QueryBar.grid_columnconfigure(1, weight=4)
         self.__QueryBar.grid_columnconfigure(2, weight=1)
         self.__QueryBar.grid_columnconfigure(3, weight=4)
+        self.__QueryBar.grid_columnconfigure(4, weight=1)
         self.__QueryBar.grid(self.__layout['QueryBar'])
         # 取出查詢條件變更時，要呼叫reload資料的動作
         self.__ReloadDataEvent = para.get('ReloadDataEvent')
@@ -68,6 +71,8 @@ class QueryBar():
         self.__CreateAlertCombo()
         # 建立異常狀態查詢控制選項
         self.__CreateUnusualRadio()
+        # 建立匯出CSV報表
+        self.__CreateExportCsvButton()
 
     # 建立控制項標題標籤
     def __CreateLabel(self):
@@ -131,6 +136,11 @@ class QueryBar():
         HumiUnusualRadYes.config(command=self.__HumiUnusualRadioOnchangeEvent)
         HumiUnusualRadNo.config(command=self.__HumiUnusualRadioOnchangeEvent)
 
+    # 建立匯出CSV報表
+    def __CreateExportCsvButton(self):
+        ExportCsvButton = tk.Button(self.__QueryBar, text="匯出CSV", command=self.__exportCsvClickEvent)
+        ExportCsvButton.grid(self.__layout["CSVBlock"])
+
     # 日期查詢控制項onchange事件
     def __DateBoxOnchangeEvent(self, event, dateBox):
         # 值沒有變不需執行
@@ -172,6 +182,24 @@ class QueryBar():
         # 更新異常紀錄清單
         self.__updateUnusualReport()
 
+    # 匯出CSV按鈕onclick事件
+    def __exportCsvClickEvent(self):
+        # 檔案路徑選取對話方塊
+        csvFilePath = filedialog.asksaveasfilename(title="選取CSV儲存位置",
+                                                   filetypes=(("CSV files", "*.csv"),),
+                                                   defaultextension=".csv")
+        # 根據目前條件，取得查詢結果
+        data = DbAccessUtil().getTodayUnusualRecord(recordDate=self.__DateCondition,
+                                                    tagID=self.__AlertCondition,
+                                                    tempUnusualStatus=self.__TempUnusualCondition,
+                                                    humiUnusualStatus=self.__HumiUnusualCondition)
+        # 寫入檔案
+        with open(csvFilePath, "w") as file:
+            file.write("溫溼度計名稱,紀錄時間,溫度,濕度,溫度異常,濕度異常\n")
+            for item in data:
+                file.write(
+                    f"{item['Name']},{item['RecordTime']},{item['Temperature']},{item['Humidity']},{'是' if item['IsTempUnusual'] == 1 else '否'},{'是' if item['IsHumiUnusual'] == 1 else '否'}\n")
+
     # 讀取警報點位置選取清單
     def __getAlertNameList(self):
         list = []
@@ -187,7 +215,7 @@ class QueryBar():
         if self.__ReloadDataEvent is not None:
             self.__ReloadDataEvent(recordDate=self.__DateCondition,
                                    tagID=self.__AlertCondition,
-                                   tempUnusualStatus=self.__TempUnusualCondition, 
+                                   tempUnusualStatus=self.__TempUnusualCondition,
                                    humiUnusualStatus=self.__HumiUnusualCondition)
 
     # 提供外界直接切換至某警示點檢視異常紀錄的方法
