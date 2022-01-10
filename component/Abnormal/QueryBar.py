@@ -1,7 +1,9 @@
 import tkinter as tk
 from tkinter import ttk, filedialog
+from typing import Text
 from utilset.ConfigUtil import ConfigUtil
 from utilset.DbAccessUtil import DbAccessUtil
+from datetime import datetime
 
 
 class QueryBar():
@@ -27,11 +29,16 @@ class QueryBar():
         'HumiUnusualRadioAll': {'row': 0, 'column': 0, 'sticky': 'W'},
         'HumiUnusualRadioYes': {'row': 0, 'column': 1, 'sticky': 'W'},
         'HumiUnusualRadioNo': {'row': 0, 'column': 2, 'sticky': 'W'},
+        # 下面是位於DateBox裡面每個DateTextBox的grid設定
+        'DateStartBox': {'row': 0, 'column': 0, 'sticky': 'EWNS'},
+        'DateEndBox': {'row': 0, 'column': 1, 'sticky': 'EWNS'},
+
     }
     __QueryBar = None  # 查詢區塊容器
     # __TempUnusualBlock = None # 溫度異常單選項容器
     __AlertCombo = None  # 溫溼度計位置選取欄位
-    __DateCondition = None  # 輸入的異常日期查詢條件
+    __DateStartCondition = None  # 輸入的異常時間(起)查詢條件
+    __DateEndCondition = None  # 輸入的異常時間(迄)查詢條件
     __AlertCondition = None  # 選取的溫溼度計位置查詢條件
     __TempChooseVal = None  # 綁定溫度異常選項為一組的變數，選取項目的Value會被給予在這邊
     __HumiChooseVal = None  # 綁定濕度異常選項為一組的變數，選取項目的Value會被給予在這邊
@@ -76,7 +83,7 @@ class QueryBar():
 
     # 建立控制項標題標籤
     def __CreateLabel(self):
-        tk.Label(self.__QueryBar, text="異常日期(yyyy/mm/dd)", font=("微軟正黑體", 12, "bold"),
+        tk.Label(self.__QueryBar, text="異常時間", font=("微軟正黑體", 12, "bold"),
                  background="#DDDDDD").grid(self.__layout['DateLabel'])
         tk.Label(self.__QueryBar, text="溫溼度計位置", font=("微軟正黑體", 12, "bold"),
                  background="#DDDDDD").grid(self.__layout['AlertLabel'])
@@ -87,11 +94,24 @@ class QueryBar():
 
     # 建立日期查詢控制項
     def __CreateDateBox(self):
-        DateBox = tk.Entry(self.__QueryBar, font=("微軟正黑體", 12, "bold"))
+        # 建立日期查詢欄位容器
+        DateBox = tk.Frame(self.__QueryBar)
+        # 設定起訖查詢欄位比例
+        DateBox.grid_columnconfigure(0, weight=1)
+        DateBox.grid_columnconfigure(1, weight=1)
         DateBox.grid(self.__layout['DateBox'])
+        # 產生日期查詢起訖欄位
+        DateStartBox = tk.Entry(DateBox, font=("微軟正黑體", 12, "bold"))
+        DateEndBox = tk.Entry(DateBox, font=("微軟正黑體", 12, "bold"))
+        DateStartBox.grid(self.__layout['DateStartBox'])
+        DateEndBox.grid(self.__layout['DateEndBox'])
+        DateStartBox.insert(0, f"{datetime.now().strftime('%Y/%m/%d')} 00:00:00")
+        DateEndBox.insert(0, f"{datetime.now().strftime('%Y/%m/%d')} 23:59:59")
         # 綁定loass focus跟按enter的事件
-        DateBox.bind('<FocusOut>', lambda event, arg=DateBox: self.__DateBoxOnchangeEvent(event, arg))
-        DateBox.bind('<Return>', lambda event, arg=DateBox: self.__DateBoxOnchangeEvent(event, arg))
+        DateStartBox.bind('<FocusOut>', lambda event, arg=(DateStartBox, DateEndBox): self.__DateBoxOnchangeEvent(event, arg))
+        DateStartBox.bind('<Return>', lambda event, arg=(DateStartBox, DateEndBox): self.__DateBoxOnchangeEvent(event, arg))
+        DateEndBox.bind('<FocusOut>', lambda event, arg=(DateStartBox, DateEndBox): self.__DateBoxOnchangeEvent(event, arg))
+        DateEndBox.bind('<Return>', lambda event, arg=(DateStartBox, DateEndBox): self.__DateBoxOnchangeEvent(event, arg))
 
     # 建立溫溼度計位置查詢控制項
     def __CreateAlertCombo(self):
@@ -142,12 +162,13 @@ class QueryBar():
         ExportCsvButton.grid(self.__layout["CSVBlock"])
 
     # 日期查詢控制項onchange事件
-    def __DateBoxOnchangeEvent(self, event, dateBox):
+    def __DateBoxOnchangeEvent(self, event, dateBoxTuple):
         # 值沒有變不需執行
-        if self.__DateCondition == dateBox.get():
+        if self.__DateStartCondition == dateBoxTuple[0].get() and self.__DateEndCondition == dateBoxTuple[1].get():
             return
-        # 強制把輸入空值轉為None
-        self.__DateCondition = None if dateBox.get() == '' else dateBox.get()
+        # 強制把輸入空值轉為最小或最大值
+        self.__DateStartCondition = "001/01/01 00:00:00" if dateBoxTuple[0].get() == '' else dateBoxTuple[0].get()
+        self.__DateEndCondition = "999/99/99 99:99:99" if dateBoxTuple[1].get() == '' else dateBoxTuple[1].get()
         # 更新異常紀錄清單
         self.__updateUnusualReport()
 
@@ -189,7 +210,8 @@ class QueryBar():
                                                    filetypes=(("CSV files", "*.csv"),),
                                                    defaultextension=".csv")
         # 根據目前條件，取得查詢結果
-        data = DbAccessUtil().getTodayUnusualRecord(recordDate=self.__DateCondition,
+        data = DbAccessUtil().getTodayUnusualRecord(recordStartTime=self.__DateStartCondition,
+                                                    recordEndTime=self.__DateEndCondition,
                                                     tagID=self.__AlertCondition,
                                                     tempUnusualStatus=self.__TempUnusualCondition,
                                                     humiUnusualStatus=self.__HumiUnusualCondition)
@@ -213,7 +235,8 @@ class QueryBar():
     # 更新異常清單
     def __updateUnusualReport(self):
         if self.__ReloadDataEvent is not None:
-            self.__ReloadDataEvent(recordDate=self.__DateCondition,
+            self.__ReloadDataEvent(recordStartTime=self.__DateStartCondition,
+                                   recordEndTime=self.__DateEndCondition,
                                    tagID=self.__AlertCondition,
                                    tempUnusualStatus=self.__TempUnusualCondition,
                                    humiUnusualStatus=self.__HumiUnusualCondition)

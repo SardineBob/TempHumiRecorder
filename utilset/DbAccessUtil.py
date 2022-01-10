@@ -83,14 +83,18 @@ class DbAccessUtil():
         command = " SELECT Name, RecordTime, Temperature, Humidity, IsTempUnusual, IsHumiUnusual FROM RecordList WHERE 1=1 "
         parameter = {}
         # 取得查詢條件
-        queryRecordDate = datetime.now().strftime('%Y/%m/%d') if "recordDate" not in para else para["recordDate"]
+        queryRecordStartDate = f"{datetime.now().strftime('%Y/%m/%d')} 00:00:00" if "recordStartTime" not in para else para[
+            "recordStartTime"]
+        queryRecordEndDate = f"{datetime.now().strftime('%Y/%m/%d')} 99:99:99" if "recordEndTime" not in para else para[
+            "recordEndTime"]
         queryID = None if "tagID" not in para else para["tagID"]
         queryTempUnusualStatus = None if "tempUnusualStatus" not in para else para["tempUnusualStatus"]
         queryHumiUnusualStatus = None if "humiUnusualStatus" not in para else para["humiUnusualStatus"]
         # 開始根據條件搜尋
-        if queryRecordDate is not None:
-            command += " AND RecordTime LIKE :date "
-            parameter["date"] = queryRecordDate + "%"
+        if queryRecordStartDate is not None and queryRecordEndDate is not None:
+            command += " AND RecordTime BETWEEN :startTime AND :endTime "
+            parameter["startTime"] = queryRecordStartDate
+            parameter["endTime"] = queryRecordEndDate
         if queryID is not None:
             command += " AND ID= :id "
             parameter["id"] = queryID
